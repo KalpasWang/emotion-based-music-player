@@ -1,0 +1,20 @@
+body {
+  background-color: black;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#webcam {
+  height: 100%;
+  object-fit: contain;
+}
+
+canvas {
+  position: absolute;
+  z-index: 100;
+}
