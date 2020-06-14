@@ -14,6 +14,25 @@ body {
   object-fit: contain;
 }
 
+#player {
+  position: absolute;
+  z-index: 120;
+  font-size: x-large;
+  color: aliceblue;
+  text-align: center;
+  height: 100%;
+  width: 100%;
+}
+
+#player .container {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
 canvas {
   position: absolute;
   z-index: 100;

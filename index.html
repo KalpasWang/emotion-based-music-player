@@ -4,10 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Facial Music Player</title>
+  <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <video id="webcam" autoplay muted></video>
+  <div id="player">
+    <div class="container">
+      <div id="play" class="w-32 h-20 flex justify-center items-center text-5xl bg-blue-500 bg-opacity-75 rounded-md cursor-pointer">
+        <span>Play</span>
+      </div>
+      <div id="exit" class="w-32 h-20 flex justify-center items-center text-5xl bg-blue-500 bg-opacity-75 rounded-md cursor-pointer">
+        <span>Exit</span>
+      </div>
+    </div>
+  </div>
+
   <script src="face-api.min.js"></script>
   <script src="script.js"></script>
 </body>
