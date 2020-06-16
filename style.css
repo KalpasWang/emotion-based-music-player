@@ -10,13 +10,15 @@ body {
 }
 
 #webcam {
+  display: block;
   height: 100%;
   object-fit: contain;
+  margin: 0 auto;
 }
 
 #player {
   position: absolute;
-  z-index: 120;
+  /* z-index: 120; */
   font-size: x-large;
   color: aliceblue;
   text-align: center;
@@ -34,6 +36,6 @@ body {
 } */
 
 canvas {
-  position: absolute;
+  /* position: absolute; */
   z-index: 100;
 }
