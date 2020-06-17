@@ -2,13 +2,13 @@ const webcam = document.getElementById('webcam');
 const player = document.getElementById('player');
 const playBtn = document.getElementById('play');
 
-// Promise.all([
-//   faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
-//   faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
-//   faceapi.nets.faceRecognitionNet.loadFromUri('/models'),
-//   faceapi.nets.faceExpressionNet.loadFromUri('/models')
-// ]).then(startVideo)
-faceapi.nets.tinyFaceDetector.loadFromUri('/models').then(startVideo)
+Promise.all([
+  faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
+  // faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
+  // faceapi.nets.faceRecognitionNet.loadFromUri('/models'),
+  faceapi.nets.faceExpressionNet.loadFromUri('/models')
+]).then(startVideo)
+// faceapi.nets.tinyFaceDetector.loadFromUri('/models').then(startVideo)
 
 function startVideo() {
   navigator.mediaDevices.getUserMedia({ video: {} })
@@ -16,25 +16,25 @@ function startVideo() {
   .catch(err => console.error(err))
 }
 
-// webcam.addEventListener('play', () => {
-//   const canvas = faceapi.createCanvasFromMedia(webcam)
-//   document.body.append(canvas)
-//   const displaySize = { width: webcam.clientWidth, height: webcam.clientHeight }
-//   faceapi.matchDimensions(canvas, displaySize)
+webcam.addEventListener('play', () => {
+  const canvas = faceapi.createCanvasFromMedia(webcam)
+  document.body.append(canvas)
+  const displaySize = { width: webcam.clientWidth, height: webcam.clientHeight }
+  faceapi.matchDimensions(canvas, displaySize)
 
-//   setInterval(async () => {
-//     const detections = await faceapi.detectSingleFace(webcam, new faceapi.TinyFaceDetectorOptions())//.withFaceLandmarks().withFaceExpressions()
+  setInterval(async () => {
+    const detections = await faceapi.detectSingleFace(webcam, new faceapi.TinyFaceDetectorOptions()).withFaceExpressions();
 
-//     canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height)
-//     if (detections) {
-//       const resizedDetections = faceapi.resizeResults(detections, displaySize)
-//       faceapi.draw.drawDetections(canvas, resizedDetections)
-//     }
+    canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height)
+    if (detections) {
+      const resizedDetections = faceapi.resizeResults(detections, displaySize)
+      faceapi.draw.drawDetections(canvas, resizedDetections)
+    }
     
-//     // faceapi.draw.drawFaceLandmarks(canvas, resizedDetections)
-//     // faceapi.draw.drawFaceExpressions(canvas, resizedDetections)
-//   }, 100)
-// });
+    // faceapi.draw.drawFaceLandmarks(canvas, resizedDetections)
+    faceapi.draw.drawFaceExpressions(canvas, resizedDetections);
+  }, 200)
+});
 
 playBtn.addEventListener('click', () => {
   // play click sound effect when entering play music mode
@@ -58,9 +58,9 @@ playBtn.addEventListener('click', () => {
 
   const audioContext = new AudioContext(); // AudioContext object instance
   const analyser = audioContext.createAnalyser(); // AnalyserNode method
-  const canvas = document.getElementById('waveform');
-  const canvasContext = canvas.getContext('2d');
-  canvas.width = webcam.clientWidth;
+  const waveCanvas = document.getElementById('waveform');
+  const canvasContext = waveCanvas.getContext('2d');
+  waveCanvas.width = webcam.clientWidth;
   // canvas.height = webcam.clientHeight;
 
   // Re-route audio playback into the processing graph of the AudioContext
@@ -71,7 +71,7 @@ playBtn.addEventListener('click', () => {
 
   function frameLooper(){
     window.requestAnimationFrame(frameLooper);
-    fbc_array = new Uint8Array(analyser.frequencyBinCount);
+    let fbc_array = new Uint8Array(analyser.frequencyBinCount);
     analyser.getByteFrequencyData(fbc_array);
     canvasContext.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
     canvasContext.fillStyle = 'rgba(0, 205, 255, 0.75)';//'#00CCFF'; // Color of the bars
@@ -79,7 +79,7 @@ playBtn.addEventListener('click', () => {
     for (let i = 0; i < bars; i++) {
       const bar_x = i * 3;
       const bar_width = 2;
-      const amplitude = fbc_array[1];
+      let amplitude = fbc_array[1];
       const bar_height = -(amplitude / 1.2);
       //  fillRect( x, y, width, height ) // Explanation of the parameters below
       canvasContext.fillRect(bar_x, canvas.height, bar_width, bar_height);

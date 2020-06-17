@@ -3,23 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Facial Music Player</title>
+  <title>Emotion-Based Music Player</title>
   <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="player">
+  <video id="webcam" class="h-full object-contain my-0 mx-auto" autoplay muted></video>
+  <div class="absolute z-10 text-2xl text-gray-300 w-full h-full">
     <div class="flex justify-between items-stretch w-full h-full">
-      <div id="exit" class="w-32 flex justify-center items-center text-5xl bg-blue-500 bg-opacity-75 rounded-md cursor-pointer">
-        <span>Exit</span>
+      <div id="exit" class="w-32 flex flex-column justify-center items-center text-5xl bg-blue-500 bg-opacity-75 rounded-md cursor-pointer">
+        <div>Exit</div>
+        <div>😡</div>
       </div>
 
-      <div id="play" class="w-32 flex justify-center items-center text-5xl bg-blue-500 bg-opacity-75 rounded-md cursor-pointer">
-        <span>Play</span>
+      <div id="play" class="w-32 flex flex-column justify-center items-center text-5xl bg-blue-500 bg-opacity-75 rounded-md cursor-pointer">
+        <div>Play</div>
+        <div>😊</div>
       </div>
     </div>
   </div>
-  <video id="webcam" autoplay muted></video>
 
   <script src="face-api.min.js"></script>
   <script src="script.js"></script>
