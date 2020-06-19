@@ -45,7 +45,21 @@ playBtn.addEventListener('click', () => {
   const template = `
   <div class="flex justify-center items-center w-full h-full">
     <canvas id="waveform" class="h-32 mx-auto mt-10"></canvas>
-  </div>`;
+    <div class="flex justify-center items-stretch w-full h-32 text-3xl">
+      <div class="mx-3 border-solid border-2 border-gray-300 rounded-md">
+        <i class="fas fa-volume-up"></i> 😄
+      </div>
+      <div class="mx-3 border-solid border-2 border-gray-300 rounded-md">
+        <i class="fas fa-volume-down"></i> 😡
+      </div>
+      <div class="mx-3 border-solid border-2 border-gray-300 rounded-md">
+        <i class="far fa-pause-circle"></i> 😥
+      </div>
+      <div class="mx-3 border-solid border-2 border-gray-300 rounded-md">
+        <i class="far fa-times-circle"></i> 😲
+      </div>
+    </div>
+  </div>`; 
   player.innerHTML = template;
 
 
