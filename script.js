@@ -4,7 +4,7 @@ const playBtn = document.getElementById('play');
 
 Promise.all([
   faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
-  // faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
+  faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
   // faceapi.nets.faceRecognitionNet.loadFromUri('/models'),
   faceapi.nets.faceExpressionNet.loadFromUri('/models')
 ]).then(startVideo)
@@ -23,16 +23,16 @@ webcam.addEventListener('play', () => {
   faceapi.matchDimensions(canvas, displaySize)
 
   setInterval(async () => {
-    const detections = await faceapi.detectSingleFace(webcam, new faceapi.TinyFaceDetectorOptions()).withFaceExpressions();
+    const detections = await faceapi.detectSingleFace(webcam, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceExpressions();
 
     canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height)
     if (detections) {
       const resizedDetections = faceapi.resizeResults(detections, displaySize)
       faceapi.draw.drawDetections(canvas, resizedDetections)
+      faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
+      faceapi.draw.drawFaceExpressions(canvas, resizedDetections);
     }
     
-    // faceapi.draw.drawFaceLandmarks(canvas, resizedDetections)
-    faceapi.draw.drawFaceExpressions(canvas, resizedDetections);
   }, 200)
 });
 
@@ -43,10 +43,8 @@ playBtn.addEventListener('click', () => {
 
   // replace the original view in player
   const template = `
-  <div class="flex justify-between items-stretch w-full h-full">
-    <div class="flex w-32 flex-column">Control</div>
-    <canvas id="waveform"></canvas>
-    <div class="flex w-32 flex-column">Volume</div>
+  <div class="flex justify-center items-center w-full h-full">
+    <canvas id="waveform" class="h-32 mx-auto mt-10"></canvas>
   </div>`;
   player.innerHTML = template;
 
@@ -73,16 +71,18 @@ playBtn.addEventListener('click', () => {
     window.requestAnimationFrame(frameLooper);
     let fbc_array = new Uint8Array(analyser.frequencyBinCount);
     analyser.getByteFrequencyData(fbc_array);
-    canvasContext.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
+    canvasContext.clearRect(0, 0, waveCanvas.width, waveCanvas.height); // Clear the canvas
     canvasContext.fillStyle = 'rgba(0, 205, 255, 0.75)';//'#00CCFF'; // Color of the bars
+    // console.log(fbc_array);
+
     const bars = 100;
+    const bar_width = waveCanvas.width / bars;
     for (let i = 0; i < bars; i++) {
-      const bar_x = i * 3;
-      const bar_width = 2;
-      let amplitude = fbc_array[1];
-      const bar_height = -(amplitude / 1.2);
+      let bar_x = i * bar_width;
+      let amplitude = fbc_array[i];
+      let bar_height = -(amplitude / 2);
       //  fillRect( x, y, width, height ) // Explanation of the parameters below
-      canvasContext.fillRect(bar_x, canvas.height, bar_width, bar_height);
+      canvasContext.fillRect(bar_x, waveCanvas.height, bar_width, bar_height);
     }
   }
 
