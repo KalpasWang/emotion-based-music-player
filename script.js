@@ -1,6 +1,8 @@
 const webcam = document.getElementById('webcam');
 const player = document.getElementById('player');
 const playBtn = document.getElementById('play');
+const emotionMap = new Map([[0, 'angry'], [1, 'happy'], [2, 'sad'], [3, 'surprised']]);
+let prevDetection = null;
 
 Promise.all([
   faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
@@ -23,18 +25,38 @@ webcam.addEventListener('play', () => {
   faceapi.matchDimensions(canvas, displaySize)
 
   setInterval(async () => {
-    const detections = await faceapi.detectSingleFace(webcam, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceExpressions();
+    const detection = await faceapi.detectSingleFace(webcam, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceExpressions();
+    console.log(detection);
 
-    canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height)
-    if (detections) {
-      const resizedDetections = faceapi.resizeResults(detections, displaySize)
+    canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+    if (detection) {
+      const resizedDetections = faceapi.resizeResults(detection, displaySize)
       faceapi.draw.drawDetections(canvas, resizedDetections)
       faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
       faceapi.draw.drawFaceExpressions(canvas, resizedDetections);
     }
-    
+    const expression = detectExpression(detection);
+    if(expression) {
+      const emotions = document.getElementById('emotions');
+      emotions.children[expression].classList.add('bg-blue-500', 'bg-opacity-75');
+    }
   }, 200)
 });
+
+function detectExpression(detection) {
+  const emotions = [];
+
+  emotions[0] = detection.expressions['angry'];
+  emotions[1] = detection.expressions['happy'];
+  emotions[2] = detection.expressions['sad'];
+  emotions[3] = detection.expressions['surprised'];
+
+  max = Math.max(...emotions);
+  if(max == prevDetection) {
+    return max;
+  }
+  prevDetection = max;
+}
 
 playBtn.addEventListener('click', () => {
   // play click sound effect when entering play music mode
@@ -43,14 +65,14 @@ playBtn.addEventListener('click', () => {
 
   // replace the original view in player
   const template = `
-  <div class="flex justify-center items-center w-full h-full">
-    <canvas id="waveform" class="h-32 mx-auto mt-10"></canvas>
-    <div class="flex justify-center items-stretch w-full h-32 text-3xl">
-      <div class="mx-3 border-solid border-2 border-gray-300 rounded-md">
-        <i class="fas fa-volume-up"></i> 😄
-      </div>
+  <div class="flex justify-center items-end w-full h-full">
+    <canvas id="waveform" class="h-32 mx-auto"></canvas>
+    <div id="emotions" class="flex justify-center items-stretch w-full h-32 text-3xl">
       <div class="mx-3 border-solid border-2 border-gray-300 rounded-md">
         <i class="fas fa-volume-down"></i> 😡
+      </div>
+      <div class="mx-3 border-solid border-2 border-gray-300 rounded-md">
+        <i class="fas fa-volume-up"></i> 😄
       </div>
       <div class="mx-3 border-solid border-2 border-gray-300 rounded-md">
         <i class="far fa-pause-circle"></i> 😥
@@ -99,38 +121,4 @@ playBtn.addEventListener('click', () => {
       canvasContext.fillRect(bar_x, waveCanvas.height, bar_width, bar_height);
     }
   }
-
-  // Establish all variables that your Analyser will use
-  // var canvas, ctx, source, context, analyser, fbc_array, bars, bar_x, bar_width, bar_height;
-  // // Initialize the MP3 player after the page loads all of its HTML into the window
-  // window.addEventListener("load", initMp3Player, false);
-  // function initMp3Player(){
-  //   document.getElementById('audio_box').appendChild(audio);
-  //   context = new AudioContext(); // AudioContext object instance
-  //   analyser = context.createAnalyser(); // AnalyserNode method
-  //   canvas = document.getElementById('analyser_render');
-  //   ctx = canvas.getContext('2d');
-  //   // Re-route audio playback into the processing graph of the AudioContext
-  //   source = context.createMediaElementSource(audio); 
-  //   source.connect(analyser);
-  //   analyser.connect(context.destination);
-  //   frameLooper();
-  // }
-  // // frameLooper() animates any style of graphics you wish to the audio frequency
-  // // Looping at the default frame rate that the browser provides(approx. 60 FPS)
-  // function frameLooper(){
-  //   window.requestAnimationFrame(frameLooper);
-  //   fbc_array = new Uint8Array(analyser.frequencyBinCount);
-  //   analyser.getByteFrequencyData(fbc_array);
-  //   ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
-  //   ctx.fillStyle = '#00CCFF'; // Color of the bars
-  //   bars = 100;
-  //   for (var i = 0; i < bars; i++) {
-  //     bar_x = i * 3;
-  //     bar_width = 2;
-  //     bar_height = -(fbc_array[i] / 2);
-  //     //  fillRect( x, y, width, height ) // Explanation of the parameters below
-  //     ctx.fillRect(bar_x, canvas.height, bar_width, bar_height);
-  //   }
-  // }
 });
