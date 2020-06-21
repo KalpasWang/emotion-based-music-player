@@ -1,7 +1,16 @@
 const webcam = document.getElementById('webcam');
 const player = document.getElementById('player');
 const playBtn = document.getElementById('play');
-const emotionMap = new Map([[0, 'angry'], [1, 'happy'], [2, 'sad'], [3, 'surprised']]);
+const emotionEnum = {
+    angry: 0,
+    happy: 1,
+    sad: 2,
+    surprised: 3
+  };
+// const ANGRY = 0;
+// const HAPPY = 1;
+// const SAD = 2;
+// const SURPRISED = 3;
 let prevDetection = null;
 
 Promise.all([
@@ -19,14 +28,14 @@ function startVideo() {
 }
 
 webcam.addEventListener('play', () => {
-  const canvas = faceapi.createCanvasFromMedia(webcam)
-  document.body.append(canvas)
-  const displaySize = { width: webcam.clientWidth, height: webcam.clientHeight }
-  faceapi.matchDimensions(canvas, displaySize)
+  const canvas = faceapi.createCanvasFromMedia(webcam);
+  document.body.append(canvas);
+  const displaySize = { width: webcam.clientWidth, height: webcam.clientHeight };
+  faceapi.matchDimensions(canvas, displaySize);
 
   setInterval(async () => {
     const detection = await faceapi.detectSingleFace(webcam, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceExpressions();
-    console.log(detection);
+    // console.log(detection);
 
     canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
     if (detection) {
@@ -34,11 +43,14 @@ webcam.addEventListener('play', () => {
       faceapi.draw.drawDetections(canvas, resizedDetections)
       faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
       faceapi.draw.drawFaceExpressions(canvas, resizedDetections);
-    }
-    const expression = detectExpression(detection);
-    if(expression) {
-      const emotions = document.getElementById('emotions');
-      emotions.children[expression].classList.add('bg-blue-500', 'bg-opacity-75');
+
+      const expression = detectExpression(detection);
+      console.log(expression);
+      if(Number.isInteger(expression)) {
+        const emotionsDiv = document.getElementById('emotions');
+        if(emotionsDiv === undefined) return;
+        emotionsDiv.children[expression].classList.add('bg-blue-500', 'bg-opacity-75');
+      }
     }
   }, 200)
 });
@@ -46,16 +58,35 @@ webcam.addEventListener('play', () => {
 function detectExpression(detection) {
   const emotions = [];
 
-  emotions[0] = detection.expressions['angry'];
-  emotions[1] = detection.expressions['happy'];
-  emotions[2] = detection.expressions['sad'];
-  emotions[3] = detection.expressions['surprised'];
+  emotions[0] = detection.expressions['angry'] || 0;
+  emotions[1] = detection.expressions['happy'] || 0;
+  emotions[2] = detection.expressions['sad'] || 0;
+  emotions[3] = detection.expressions['surprised'] || 0;
 
-  max = Math.max(...emotions);
-  if(max == prevDetection) {
-    return max;
+  const maxNumIdx = emotions.reduce((maxNumIdx, num, idx, arr) => {
+      if(num > 0 && num > arr[maxNumIdx]) {
+        return idx;
+      }
+      return maxNumIdx;
+    }, 0);
+
+  if(emotions[maxNumIdx] == 0) {
+    prevDetection = null;
+    return;
   }
-  prevDetection = max;
+
+  for(let [k, v] of Object.entries(detection.expressions)) {
+    if(v > emotions[maxNumIdx] && emotionEnum[k] !== undefined) {
+      prevDetection = null;
+      return;
+    }
+  }
+  
+  if(maxNumIdx === prevDetection) {
+    return maxNumIdx
+  } else {
+    prevDetection = maxNumIdx;
+  }
 }
 
 playBtn.addEventListener('click', () => {
