@@ -7,24 +7,20 @@ const emotionEnum = {
     sad: 2,
     surprised: 3
   };
-// const ANGRY = 0;
-// const HAPPY = 1;
-// const SAD = 2;
-// const SURPRISED = 3;
 let prevDetection = null;
+let audio = null;
 
 Promise.all([
   faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
   faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
   // faceapi.nets.faceRecognitionNet.loadFromUri('/models'),
   faceapi.nets.faceExpressionNet.loadFromUri('/models')
-]).then(startVideo)
-// faceapi.nets.tinyFaceDetector.loadFromUri('/models').then(startVideo)
+]).then(startVideo);
 
 function startVideo() {
   navigator.mediaDevices.getUserMedia({ video: {} })
-  .then(stream => webcam.srcObject = stream)
-  .catch(err => console.error(err))
+    .then(stream => webcam.srcObject = stream)
+    .catch(err => console.error(err))
 }
 
 webcam.addEventListener('play', () => {
@@ -32,6 +28,8 @@ webcam.addEventListener('play', () => {
   document.body.append(canvas);
   const displaySize = { width: webcam.clientWidth, height: webcam.clientHeight };
   faceapi.matchDimensions(canvas, displaySize);
+  let emotionsDiv = null;
+  let timeoutId = null;
 
   setInterval(async () => {
     const detection = await faceapi.detectSingleFace(webcam, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceExpressions();
@@ -39,18 +37,45 @@ webcam.addEventListener('play', () => {
 
     canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
     if (detection) {
-      const resizedDetections = faceapi.resizeResults(detection, displaySize)
-      faceapi.draw.drawDetections(canvas, resizedDetections)
+      const resizedDetections = faceapi.resizeResults(detection, displaySize);
+      faceapi.draw.drawDetections(canvas, resizedDetections);
       faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
       faceapi.draw.drawFaceExpressions(canvas, resizedDetections);
 
       const expression = detectExpression(detection);
-      console.log(expression);
-      if(Number.isInteger(expression)) {
-        const emotionsDiv = document.getElementById('emotions');
+      if(expression) console.log(expression);
 
-        if(!emotionsDiv) return;
+      if(Number.isInteger(expression)) {
+        if(!emotionsDiv) {
+          const tmp = document.getElementById('emotions');
+          if(!tmp) return;
+          emotionsDiv = tmp;
+        }
+
         emotionsDiv.children[expression].classList.add('bg-blue-500', 'bg-opacity-75');
+        const clickAudio = new Audio('audio/click.mp3');
+        clickAudio.play();
+
+        if(timeoutId) clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+          emotionsDiv.children[expression].classList.remove('bg-blue-500', 'bg-opacity-75');
+        }, 200);
+
+        switch(expression) {
+          case emotionEnum.angry:
+            setAudioVolume(-0.1);
+            break;
+          case emotionEnum.happy:
+            setAudioVolume(0.1);
+            break;
+          case emotionEnum.sad:
+            pauseOrPlayAudio();
+            break;
+          case emotionEnum.angry:
+            stopAndQuitAudio();
+            break;
+            
+        }
       }
     }
   }, 200)
@@ -90,6 +115,31 @@ function detectExpression(detection) {
   }
 }
 
+
+function setAudioVolume(amount) {
+  if(!audio) return;
+  
+  audio.volume += amount;
+  return true;
+}
+
+
+function pauseOrPlayAudio() {
+  if(!audio) return;
+
+  audio.paused ? audio.play() : audio.pause();
+}
+
+
+function stopAndQuitAudio() {
+  if(!audio) return;
+
+  audio.pause();
+  audio.currentTime = 0;
+  window.location.reload(true);
+}
+
+
 playBtn.addEventListener('click', () => {
   // play click sound effect when entering play music mode
   const clickAudio = new Audio('audio/click.mp3');
@@ -117,7 +167,7 @@ playBtn.addEventListener('click', () => {
   player.innerHTML = template;
 
 
-  const audio = new Audio('audio/rock.mp3');
+  audio = new Audio('audio/rock.mp3');
   // audio.controls = true;
   // audio.loop = true;
   audio.autoplay = true;
