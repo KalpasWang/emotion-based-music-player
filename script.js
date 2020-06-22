@@ -48,7 +48,8 @@ webcam.addEventListener('play', () => {
       console.log(expression);
       if(Number.isInteger(expression)) {
         const emotionsDiv = document.getElementById('emotions');
-        if(emotionsDiv === undefined) return;
+
+        if(!emotionsDiv) return;
         emotionsDiv.children[expression].classList.add('bg-blue-500', 'bg-opacity-75');
       }
     }
@@ -76,7 +77,7 @@ function detectExpression(detection) {
   }
 
   for(let [k, v] of Object.entries(detection.expressions)) {
-    if(v > emotions[maxNumIdx] && emotionEnum[k] !== undefined) {
+    if(v > emotions[maxNumIdx] && emotionEnum[k] === undefined) {
       prevDetection = null;
       return;
     }
